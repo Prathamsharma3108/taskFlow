@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head}">
+    <!-- <title>Dashboard - Bug Tracker</title> -->
+    <title>Dashboard - Task Management System</title>
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: navigation}"></div>
+    
+    <main class="main-content">
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+        
+        <!-- Welcome Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Welcome, <span th:text="${currentUser.fullName}">User</span>!</h2>
+            </div>
+            <div class="card-body">
+                <!-- <p>You are logged in as <strong th:text="${currentUser.role.displayName}">Role</strong>. Here's an overview of the current bug tracking status.</p> -->
+                <p>You are logged in as <strong th:text="${currentUser.role.displayName}">Role</strong>. Here's an overview of the current project workflow and task tracking status.</p>
+            </div>
+        </div>
+
+        <!-- Bug Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card danger">
+                <h3 th:text="${bugStats.totalBugs}">0</h3>
+                <p>Total Tasks</p>
+            </div>
+            <div class="stat-card danger">
+                <h3 th:text="${bugStats.openBugs}">0</h3>
+                <p>Open Tasks</p>
+            </div>
+            <div class="stat-card warning">
+                <h3 th:text="${bugStats.inProgressBugs}">0</h3>
+                <p>In Progress</p>
+            </div>
+            <div class="stat-card info">
+                <h3 th:text="${bugStats.resolvedBugs}">0</h3>
+                <p>Resolved</p>
+            </div>
+            <div class="stat-card success">
+                <h3 th:text="${bugStats.closedBugs}">0</h3>
+                <p>Closed</p>
+            </div>
+            <div class="stat-card primary">
+                <h3 th:text="${bugStats.unassignedBugs}">0</h3>
+                <p>Unassigned</p>
+            </div>
+        </div>
+
+        <!-- User Statistics (Admin only) -->
+        <div th:if="${userStats}" class="card">
+            <div class="card-header">
+                <h2>User Statistics</h2>
+            </div>
+            <div class="card-body">
+                <div class="stats-grid">
+                    <div class="stat-card primary">
+                        <h3 th:text="${userStats.totalUsers}">0</h3>
+                        <p>Total Users</p>
+                    </div>
+                    <div class="stat-card danger">
+                        <h3 th:text="${userStats.managerCount}">0</h3>
+                        <p>Managers</p>
+                    </div>
+                    
+                    <div class="stat-card success">
+                        <h3 th:text="${userStats.teamMemberCount}">0</h3>
+                        <p>Team Members</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Personal Statistics -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Your Activity</h2>
+            </div>
+            <div class="card-body">
+                <div class="stats-grid">
+                    <div class="stat-card info">
+                        <h3 th:text="${userBugStats.reportedBugs}">0</h3>
+                        <p>Tasks Created</p>
+                    </div>
+                    <div class="stat-card warning">
+                        <h3 th:text="${userBugStats.assignedBugs}">0</h3>
+                        <p>Tasks Assigned</p>
+                    </div>
+                    <div class="stat-card primary">
+                        <h3 th:text="${userBugStats.activeBugs}">0</h3>
+                        <p>Active Assignments</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Bugs -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Recent Tasks</h2>
+            </div>
+            <div class="card-body">
+                <div th:if="${#lists.isEmpty(recentBugs)}">
+                    <p>No recent tasks found.</p>
+                </div>
+                <div th:unless="${#lists.isEmpty(recentBugs)}">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Reporter</th>
+                                <th>Assignee</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="bug : ${recentBugs}">
+                                <td th:text="${bug.id}">#1</td>
+                                <td>
+                                    <a th:href="@{/bugs/{id}(id=${bug.id})}" th:text="${bug.title}">Bug Title</a>
+                                </td>
+                                <td>
+                                    <span class="badge badge-info" th:text="${bug.type}">TYPE</span>
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(#strings.replace(bug.status.displayName, ' ', '-'))}" th:text="${bug.status.displayName}">Status</span>
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(bug.priority)}" th:text="${bug.priority}">Priority</span>
+                                </td>
+                                <td th:text="${bug.reporter.fullName}">Reporter</td>
+                                <td th:text="${bug.assignee != null ? bug.assignee.fullName : 'Unassigned'}">Assignee</td>
+                                <td th:text="${#temporals.format(bug.createdAt, 'MMM dd, yyyy')}">Date</td>
+                                <td>
+                                    <a th:href="@{/bugs/{id}(id=${bug.id})}" class="btn btn-primary btn-sm">View</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Your Assigned Bugs -->
+        <div th:unless="${#lists.isEmpty(assignedBugs)}" class="card">
+            <div class="card-header">
+                <h2>Your Active Tasks</h2>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Reporter</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="bug : ${assignedBugs}">
+                            <td th:text="${bug.id}">#1</td>
+                            <td>
+                                <a th:href="@{/bugs/{id}(id=${bug.id})}" th:text="${bug.title}">Bug Title</a>
+                            </td>
+                            <td>
+                                <span class="badge badge-info" th:text="${bug.type}">TYPE</span>
+                            </td>
+                            <td>
+                                <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(#strings.replace(bug.status.displayName, ' ', '-'))}" th:text="${bug.status.displayName}">Status</span>
+                            </td>
+                            <td>
+                                <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(bug.priority)}" th:text="${bug.priority}">Priority</span>
+                            </td>
+                            <td th:text="${bug.reporter.fullName}">Reporter</td>
+                            <td th:text="${#temporals.format(bug.createdAt, 'MMM dd, yyyy')}">Date</td>
+                            <td>
+                                <a th:href="@{/bugs/{id}(id=${bug.id})}" class="btn btn-primary btn-sm">View</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Quick Actions</h2>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2">
+                    <a th:href="@{/bugs/new}" class="btn btn-success">Create New Task</a>
+                    <a th:href="@{/bugs}" class="btn btn-primary">View All Tasks</a>
+                    <a th:href="@{/bugs/my-assignments}" class="btn btn-warning">My Assignments</a>
+                    <a th:href="@{/bugs/my-reports}" class="btn btn-info">My Created Tasks</a>
+                    <a sec:authorize="hasRole('MANAGER')" th:href="@{/users}" class="btn btn-secondary">Manage Users</a>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>
+

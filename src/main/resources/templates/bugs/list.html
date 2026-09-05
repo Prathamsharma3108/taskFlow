@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head}">
+    <title>All Tasks</title>
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: navigation}"></div>
+    
+    <main class="main-content">
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+        
+        <!-- Page Header -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2>All Tasks</h2>
+                    <a th:href="@{/bugs/new}" class="btn btn-success">Create New Task</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Bug Statistics -->
+                <div class="stats-grid">
+                    <div class="stat-card danger">
+                        <h3 th:text="${bugStats.totalBugs}">0</h3>
+                        <p>Total Tasks</p>
+                    </div>
+                    <div class="stat-card danger">
+                        <h3 th:text="${bugStats.openBugs}">0</h3>
+                        <p>Open</p>
+                    </div>
+                    <div class="stat-card warning">
+                        <h3 th:text="${bugStats.inProgressBugs}">0</h3>
+                        <p>In Progress</p>
+                    </div>
+                    <div class="stat-card info">
+                        <h3 th:text="${bugStats.resolvedBugs}">0</h3>
+                        <p>Resolved</p>
+                    </div>
+                    <div class="stat-card success">
+                        <h3 th:text="${bugStats.closedBugs}">0</h3>
+                        <p>Closed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="card">
+            <div class="card-body">
+                <form method="get" th:action="@{/bugs}">
+                    <div class="d-flex gap-2 align-items-center">
+                        <!-- Status Filter -->
+                        <select name="status" class="form-select" style="width: auto;">
+                            <option value="">All Statuses</option>
+                            <option th:each="status : ${bugStatuses}" 
+                                    th:value="${#strings.toLowerCase(status.name())}" 
+                                    th:text="${status.displayName}"
+                                    th:selected="${selectedStatus == #strings.toLowerCase(status.name())}">Status</option>
+                        </select>
+                        
+                        <!-- Search Input -->
+                        <input type="text" name="search" class="form-control" placeholder="Search bugs..." 
+                               th:value="${searchTerm}" style="max-width: 300px;">
+                        
+                        <!-- Filter Button -->
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                        
+                        <!-- Clear Button -->
+                        <a th:href="@{/bugs}" class="btn btn-secondary">Clear</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bug List -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Task List 
+                    <span th:if="${searchTerm}" th:text="'(Search: ' + ${searchTerm} + ')'"></span>
+                    <span th:if="${selectedStatus}" th:text="'(Status: ' + ${selectedStatus} + ')'"></span>
+                </h3>
+            </div>
+            <div class="card-body">
+                <div th:if="${#lists.isEmpty(bugs)}">
+                    <p>No tasks found.</p>
+                </div>
+                <div th:unless="${#lists.isEmpty(bugs)}">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Reporter</th>
+                                <th>Assignee</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="bug : ${bugs}">
+                                <td th:text="${bug.id}">#1</td>
+                                <td>
+                                    <a th:href="@{/bugs/{id}(id=${bug.id})}" th:text="${bug.title}">Task Title</a>
+                                </td>
+                                <td>
+                                    <span class="badge badge-info"
+                                          th:text="${bug.type}">
+                                        Type
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(#strings.replace(bug.status.displayName, ' ', '-'))}" th:text="${bug.status.displayName}">Status</span>
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(bug.priority)}" th:text="${bug.priority}">Priority</span>
+                                </td>
+                                <td th:text="${bug.reporter.fullName}">Reporter</td>
+                                <td th:text="${bug.assignee != null ? bug.assignee.fullName : 'Unassigned'}">Assignee</td>
+                                <td th:text="${#temporals.format(bug.createdAt, 'MMM dd, yyyy HH:mm')}">Date</td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a th:href="@{/bugs/{id}(id=${bug.id})}" class="btn btn-primary btn-sm">View</a>
+                                        
+                                        <!-- Edit button - only for users who can edit -->
+                                        <a th:if="${bug.reporter.id == currentUser.id or bug.assignee?.id == currentUser.id or currentUser.role.name() == 'ADMIN'}"
+                                           th:href="@{/bugs/{id}/edit(id=${bug.id})}" class="btn btn-warning btn-sm">Edit</a>
+                                        
+                                        <!-- Quick assign button - for developers and admins -->
+                                        <!-- <form th:if="${currentUser.role.name() == 'MANAGER' or currentUser.role.name() == 'TEAM_MEMBER'}" 
+                                              th:action="@{/bugs/{id}/assign(id=${bug.id})}" method="post" style="display: inline;">
+                                            <input type="hidden" name="assigneeId" th:value="${currentUser.id}">
+                                            <button th:if="${bug.assignee == null or bug.assignee.id != currentUser.id}" 
+                                                    type="submit" class="btn btn-success btn-sm">Assign to Me</button>
+                                        </form> -->
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>
+

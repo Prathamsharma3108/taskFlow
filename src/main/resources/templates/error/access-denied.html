@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head}">
+    <title>Access Denied</title>
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: navigation}"></div>
+    
+    <main class="main-content">
+        <div class="card">
+            <div class="card-body text-center" style="padding: 4rem;">
+                <h1 style="font-size: 4rem; color: #dc3545; margin-bottom: 2rem;">403</h1>
+                <h2 style="color: #495057; margin-bottom: 1.5rem;">Access Denied</h2>
+                <p style="font-size: 1.2rem; color: #6c757d; margin-bottom: 2rem;">
+                    You don't have permission to access this resource.
+                </p>
+                <p style="color: #6c757d; margin-bottom: 3rem;">
+                    This page requires specific permissions that your account doesn't have. 
+                    Please contact your administrator if you believe this is an error.
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <a th:href="@{/dashboard}" class="btn btn-primary">Go to Dashboard</a>
+                    <a th:href="@{/bugs}" class="btn btn-secondary">View Tasks</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Help Section -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Need Help?</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Common Reasons for Access Denied:</h4>
+                        <ul>
+                            <li>Insufficient user role permissions</li>
+                            <li>Trying to access admin-only features</li>
+                            <li>Account may be disabled</li>
+                            <li>Session may have expired</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>What You Can Do:</h4>
+                        <ul>
+                            <li>Check your user role and permissions</li>
+                            <li>Contact your system administrator</li>
+                            <li>Try logging out and logging back in</li>
+                            <li>Return to the dashboard and try again</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>
+

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle != null ? pageTitle + ' - Task Management System' : 'Task Management System'}">Task Management System</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+    <!-- Header Fragment -->
+    <header th:fragment="header" class="header" sec:authorize="isAuthenticated()">
+        <div class="container">
+            <h1><a th:href="@{/dashboard}">Task Tracker</a></h1>
+            <div class="user-info">
+                <span class="username" sec:authentication="name">Username</span>
+                <span class="role" sec:authentication="principal.role.displayName">Role</span>
+                <a th:href="@{/logout}" class="btn btn-secondary btn-sm">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Fragment -->
+    <nav th:fragment="navigation" class="nav" sec:authorize="isAuthenticated()">
+        <div class="container">
+            <ul>
+                <li><a th:href="@{/dashboard}">Dashboard</a></li>
+                <li><a th:href="@{/bugs}">Tasks</a></li>
+                <li><a th:href="@{/bugs/my-assignments}">My Assignments</a></li>
+                <li><a th:href="@{/bugs/my-reports}">My Created Tasks</a></li>
+                <li sec:authorize="hasRole('MANAGER')">
+                    <a th:href="@{/users}">Team Management</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content Fragment -->
+    <main th:fragment="main" class="main-content">
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+        <div th:if="${warningMessage}" class="alert alert-warning" th:text="${warningMessage}"></div>
+        <div th:if="${infoMessage}" class="alert alert-info" th:text="${infoMessage}"></div>
+        
+        <!-- Page content will be inserted here -->
+        <div th:block th:replace="${contentFragment}"></div>
+    </main>
+
+    <!-- Footer Fragment -->
+    <footer th:fragment="footer" style="text-align: center; padding: 2rem; color: #6c757d; border-top: 1px solid #e9ecef; margin-top: 3rem;">
+        <p>&copy; Task Management System. Built with Spring Boot and Thymeleaf.</p>
+    </footer>
+</body>
+</html>
+

@@ -1,0 +1,15 @@
+C:\Users\shrey\Project\src\main\java\com\bugtracker\repository\BugRepository.java
+C:\Users\shrey\Project\src\main\java\com\bugtracker\enums\Role.java
+C:\Users\shrey\Project\src\main\java\com\bugtracker\entity\Bug.java
+C:\Users\shrey\Project\src\main\java\com\bugtracker\service\CustomUserDetailsService.java
+C:\Users\shrey\Project\src\main\java\com\bugtracker\controller\UserController.java
+C:\Users\shrey\Project\src\main\java\com\bugtracker\config\DataInitializer.java
+C:\Users\shrey\Project\src\main\java\com\bugtracker\entity\User.java
+C:\Users\shrey\Project\src\main\java\com\bugtracker\service\BugService.java
+C:\Users\shrey\Project\src\main\java\com\bugtracker\controller\BugController.java
+C:\Users\shrey\Project\src\main\java\com\bugtracker\config\SecurityConfig.java
+C:\Users\shrey\Project\src\main\java\com\bugtracker\BugTrackerApplication.java
+C:\Users\shrey\Project\src\main\java\com\bugtracker\repository\UserRepository.java
+C:\Users\shrey\Project\src\main\java\com\bugtracker\enums\BugStatus.java
+C:\Users\shrey\Project\src\main\java\com\bugtracker\controller\AuthController.java
+C:\Users\shrey\Project\src\main\java\com\bugtracker\service\UserService.java

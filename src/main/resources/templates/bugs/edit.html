@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head}">
+    <title th:text="'Edit Bug #' + ${bug.id}">Edit Task - Task Management System</title>
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: navigation}"></div>
+    
+    <main class="main-content">
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+        
+        <!-- Page Header -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2>Edit Task #<span th:text="${bug.id}">1</span></h2>
+                    <div class="d-flex gap-2">
+                        <a th:href="@{/bugs/{id}(id=${bug.id})}" class="btn btn-secondary">Cancel</a>
+                        <a th:href="@{/bugs}" class="btn btn-secondary">Back to Tasks</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <p>Update the task information below. Fields marked with * are required.</p>
+            </div>
+        </div>
+
+        <!-- Bug Edit Form -->
+        <div class="card">
+            <div class="card-body">
+                <form th:action="@{/bugs/{id}/edit(id=${bug.id})}" th:object="${bug}" method="post">
+                    <!-- Title -->
+                    <div class="form-group">
+                        <label for="title" class="form-label">Task Title *</label>
+                        <input type="text" id="title" th:field="*{title}" class="form-control" 
+                               placeholder="Brief description of the task" required>
+                        <div th:if="${#fields.hasErrors('title')}" class="alert alert-danger mt-2">
+                            <div th:each="error : ${#fields.errors('title')}" th:text="${error}">Error</div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label for="description" class="form-label">Description *</label>
+                        <textarea id="description" th:field="*{description}" class="form-control" rows="6" 
+                                  placeholder="Detailed description of the task" required></textarea>
+                        <div th:if="${#fields.hasErrors('description')}" class="alert alert-danger mt-2">
+                            <div th:each="error : ${#fields.errors('description')}" th:text="${error}">Error</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="type" class="form-label">Task Type</label>
+                    
+                        <select id="type" th:field="*{type}" class="form-select">
+                            <option value="BUG">Bug</option>
+                            <option value="FEATURE">Feature</option>
+                            <option value="IMPROVEMENT">Improvement</option>
+                        </select>
+                    </div>
+
+                    <!-- Priority -->
+                    <div class="form-group">
+                        <label for="priority" class="form-label">Priority</label>
+                        <select id="priority" th:field="*{priority}" class="form-select">
+                            <option th:each="priority : ${priorities}" th:value="${priority}" th:text="${priority}">Priority</option>
+                        </select>
+                    </div>
+
+                    <!-- Status (Only for users who can assign) -->
+                    <div th:if="${canAssign}" class="form-group">
+                        <label for="status" class="form-label">Status</label>
+                        <select id="status" th:field="*{status}" class="form-select">
+                            <option th:each="status : ${bugStatuses}" th:value="${status}" th:text="${status.displayName}">Status</option>
+                        </select>
+                        <small class="form-text text-muted">
+                            <strong>Open:</strong> Task has been created and needs attention<br>
+                            <strong>In Progress:</strong> Task is being worked on<br>
+                            <strong>Resolved:</strong> Task has been done and is ready for suggestion<br>
+                            <strong>Closed:</strong> Task has been successfully completed
+                        </small>
+                    </div>
+
+                    <!-- Assignee (Only for users who can assign) -->
+                    <div th:if="${canAssign}" class="form-group">
+                        <label for="assignee" class="form-label">Assignee</label>
+                        <select id="assignee" th:field="*{assignee}" class="form-select">
+                            <option value="">-- Unassigned --</option>
+                            <option th:each="user : ${assignableUsers}" th:value="${user.id}" 
+                                    th:text="${user.fullName + ' (' + user.role.displayName + ')'}">User</option>
+                        </select>
+                    </div>
+
+                    <!-- Current Bug Information (Read-only) -->
+                    <div class="card mt-4" style="background-color: #f8f9fa;">
+                        <div class="card-header">
+                            <h4>Current Task Information</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Reporter:</strong> <span th:text="${bug.reporter.fullName}">Reporter</span></p>
+                                    <p><strong>Created:</strong> <span th:text="${#temporals.format(bug.createdAt, 'MMM dd, yyyy HH:mm')}">Date</span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Current Status:</strong> 
+                                        <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(#strings.replace(bug.status.displayName, ' ', '-'))}" th:text="${bug.status.displayName}">Status</span>
+                                    </p>
+                                    <p th:if="${bug.updatedAt}"><strong>Last Updated:</strong> <span th:text="${#temporals.format(bug.updatedAt, 'MMM dd, yyyy HH:mm')}">Date</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-success">Update Task</button>
+                        <a th:href="@{/bugs/{id}(id=${bug.id})}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Guidelines -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Edit Guidelines</h3>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li><strong>Title and Description:</strong> All users can edit the title and description to provide better clarity</li>
+                    <li><strong>Priority:</strong> All users can adjust the priority based on the impact of the bug</li>
+                    <li th:if="${canAssign}"><strong>Status:</strong> You can update the bug status to reflect current progress</li>
+                    <li th:if="${canAssign}"><strong>Assignment:</strong> You can assign or reassign the bug to appropriate team members</li>
+                    <li><strong>History:</strong> All changes are tracked and will be visible in the bug timeline</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+    
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>
+

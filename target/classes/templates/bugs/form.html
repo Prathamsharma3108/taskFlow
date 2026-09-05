@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head}">
+    <title>Create New Task - Task Management System</title>
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: navigation}"></div>
+    
+    <main class="main-content">
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+        
+        <!-- Page Header -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2>Create New Task</h2>
+                    <a th:href="@{/bugs}" class="btn btn-secondary">Back to Tasks</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <p>Provide detailed information about the task, feature request, improvement, or issue.</p>
+            </div>
+        </div>
+
+        <!-- Bug Form -->
+        <div class="card">
+            <div class="card-body">
+                <form th:action="@{/bugs/new}" th:object="${bug}" method="post">
+                    <!-- Title -->
+                    <div class="form-group">
+                        <label for="title" class="form-label">Task Title *</label>
+                        <input type="text" id="title" th:field="*{title}" class="form-control" 
+                               placeholder="Brief description of the bug" required>
+                        <div th:if="${#fields.hasErrors('title')}" class="alert alert-danger mt-2">
+                            <div th:each="error : ${#fields.errors('title')}" th:text="${error}">Error</div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label for="description" class="form-label">Description *</label>
+                        <textarea id="description" th:field="*{description}" class="form-control" rows="6" 
+                                  placeholder="Detailed description of the task, including steps to reproduce, expected behavior, and actual behavior" required></textarea>
+                        <div th:if="${#fields.hasErrors('description')}" class="alert alert-danger mt-2">
+                            <div th:each="error : ${#fields.errors('description')}" th:text="${error}">Error</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="type" class="form-label">Task Type</label>
+                    
+                        <select id="type" th:field="*{type}" class="form-select">
+                            <option value="BUG">Bug</option>
+                            <option value="FEATURE">Feature</option>
+                            <option value="IMPROVEMENT">Improvement</option>
+                        </select>
+                    </div>
+
+                    <!-- Priority -->
+                    <div class="form-group">
+                        <label for="priority" class="form-label">Priority</label>
+                        <select id="priority" th:field="*{priority}" class="form-select">
+                            <option th:each="priority : ${priorities}" th:value="${priority}" th:text="${priority}">Priority</option>
+                        </select>
+                        <small class="form-text text-muted">
+                            <strong>Low:</strong> Minor issues that don't affect functionality<br>
+                            <strong>Medium:</strong> Issues that affect functionality but have workarounds<br>
+                            <strong>High:</strong> Major issues that significantly impact functionality<br>
+                            <strong>Critical:</strong> Issues that prevent the system from working
+                        </small>
+                    </div>
+
+                    <!-- Assignee (Optional) -->
+                    <div class="form-group">
+                        <label for="assignee" class="form-label">Assign to (Optional)</label>
+                        <select id="assignee" th:field="*{assignee}" class="form-select">
+                            <option value="">-- Leave Unassigned --</option>
+                            <option th:each="user : ${assignableUsers}" th:value="${user.id}" 
+                                    th:text="${user.fullName + ' (' + user.role.displayName + ')'}">User</option>
+                        </select>
+                        <small class="form-text text-muted">Assign this task to a manager or team member, or leave it unassigned.</small>
+                    </div>
+
+                    <!-- Reporter (Hidden) -->
+                    <input type="hidden" th:field="*{reporter.id}">
+
+                    <!-- Form Actions -->
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-success">Create Task</button>
+                        <a th:href="@{/bugs}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tips for Reporting Bugs -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Tips for Effective Bug Reporting</h3>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li><strong>Be Specific:</strong> Use clear, descriptive titles that summarize the issue</li>
+                    <li><strong>Steps to Reproduce:</strong> List the exact steps that lead to the bug</li>
+                    <li><strong>Expected vs Actual:</strong> Describe what should happen vs what actually happens</li>
+                    <li><strong>Environment Details:</strong> Include browser, OS, or other relevant environment information</li>
+                    <li><strong>Screenshots:</strong> If applicable, describe what visual elements are affected</li>
+                    <li><strong>Error Messages:</strong> Include any error messages or codes you encountered</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+    
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>
+

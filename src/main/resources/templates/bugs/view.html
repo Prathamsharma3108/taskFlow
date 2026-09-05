@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head}">
+    <title th:text="'Task #' + ${bug.id} + ' - ' + ${bug.title}">Task Details</title>
+</head>
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: navigation}"></div>
+    
+    <main class="main-content">
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+        
+        <!-- Page Header -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2>Task #<span th:text="${bug.id}">1</span>: <span th:text="${bug.title}">Task Title</span></h2>
+                    <div class="d-flex gap-2">
+                        <a th:if="${canEdit}" th:href="@{/bugs/{id}/edit(id=${bug.id})}" class="btn btn-warning">Edit Task</a>
+                        <a th:href="@{/bugs}" class="btn btn-secondary">Back to Tasks</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Bug Status and Priority -->
+                <div>
+                    <strong>Type:</strong>
+                
+                    <span class="badge badge-info"
+                          th:text="${bug.type}">
+                        Type
+                    </span>
+                </div>
+                <div class="d-flex gap-3 mb-3">
+                    <div>
+                        <strong>Status:</strong>
+                        <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(#strings.replace(bug.status.displayName, ' ', '-'))}" th:text="${bug.status.displayName}">Status</span>
+                    </div>
+                    <div>
+                        <strong>Priority:</strong>
+                        <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(bug.priority)}" th:text="${bug.priority}">Priority</span>
+                    </div>
+                </div>
+                
+                <!-- Bug Metadata -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Reporter:</strong> <span th:text="${bug.reporter.fullName}">Reporter Name</span></p>
+                        <p><strong>Assignee:</strong> 
+                            <span th:if="${bug.assignee}" th:text="${bug.assignee.fullName}">Assignee Name</span>
+                            <span th:unless="${bug.assignee}" class="text-muted">Unassigned</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Created:</strong> <span th:text="${#temporals.format(bug.createdAt, 'MMM dd, yyyy HH:mm')}">Date</span></p>
+                        <p th:if="${bug.updatedAt}"><strong>Last Updated:</strong> <span th:text="${#temporals.format(bug.updatedAt, 'MMM dd, yyyy HH:mm')}">Date</span></p>
+                        <p th:if="${bug.resolvedAt}"><strong>Resolved:</strong> <span th:text="${#temporals.format(bug.resolvedAt, 'MMM dd, yyyy HH:mm')}">Date</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bug Description -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Description</h3>
+            </div>
+            <div class="card-body">
+                <div th:text="${bug.description}" style="white-space: pre-wrap;">Task description goes here...</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div th:if="${canAssign}" class="card">
+            <div class="card-header">
+                <h3>Quick Actions</h3>
+            </div>
+            <div class="card-body">
+                <!-- Status Update -->
+                <div class="mb-3">
+                    <strong>Update Status:</strong>
+                    <div class="d-flex gap-2 mt-2">
+                        <form th:each="status : ${bugStatuses}" th:action="@{/bugs/{id}/update-status(id=${bug.id})}" method="post" style="display: inline;">
+                            <input type="hidden" name="status" th:value="${status.name()}">
+                            <button type="submit" class="btn btn-sm" 
+                                    th:classappend="${bug.status == status ? 'btn-secondary' : 'btn-outline-primary'}"
+                                    th:disabled="${bug.status == status}"
+                                    th:text="${status.displayName}">Status</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Assignment -->
+                <div>
+                    <strong>Assign Task:</strong>
+                    <form th:action="@{/bugs/{id}/assign(id=${bug.id})}" method="post" class="d-flex gap-2 mt-2" style="max-width: 400px;">
+                        <select name="assigneeId" class="form-select">
+                            <option value="">-- Unassigned --</option>
+                            <option th:each="user : ${assignableUsers}" th:value="${user.id}" 
+                                    th:text="${user.fullName + ' (' + user.role.displayName + ')'}"
+                                    th:selected="${bug.assignee != null and bug.assignee.id == user.id}">User</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Assign</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Bug (Admin or Reporter only) -->
+        <div th:if="${currentUser.role.name() == 'MANAGER' or bug.reporter.id == currentUser.id}" class="card">
+            <div class="card-header">
+                <h3 class="text-danger">Danger Zone</h3>
+            </div>
+            <div class="card-body">
+                <p>Once you delete a task, there is no going back. Please be certain.</p>
+                <form th:action="@{/bugs/{id}/delete(id=${bug.id})}" method="post" 
+                      onsubmit="return confirm('Are you sure you want to delete this task? This action cannot be undone.');">
+                    <button type="submit" class="btn btn-danger">Delete Task</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bug History/Timeline (Future Enhancement) -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Task Timeline</h3>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <strong th:text="${#temporals.format(bug.createdAt, 'MMM dd, yyyy HH:mm')}">Date</strong>
+                        <span th:text="'Task created by ' + ${bug.reporter.fullName}">Event</span>
+                    </div>
+                    <div th:if="${bug.assignee}" class="timeline-item">
+                        <strong>Assignment</strong>
+                        <span th:text="'Task assigned to ' + ${bug.assignee.fullName}">Event</span>
+                    </div>
+                    <div th:if="${bug.updatedAt}" class="timeline-item">
+                        <strong th:text="${#temporals.format(bug.updatedAt, 'MMM dd, yyyy HH:mm')}">Date</strong>
+                        <span>Task updated</span>
+                    </div>
+                    <div th:if="${bug.resolvedAt}" class="timeline-item">
+                        <strong th:text="${#temporals.format(bug.resolvedAt, 'MMM dd, yyyy HH:mm')}">Date</strong>
+                        <span>Task resolved</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div th:replace="~{fragments/layout :: footer}"></div>
+
+    <style>
+        .timeline {
+            border-left: 2px solid #667eea;
+            padding-left: 1rem;
+        }
+        
+        .timeline-item {
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 0.5rem;
+            width: 10px;
+            height: 10px;
+            background: #667eea;
+            border-radius: 50%;
+        }
+        
+        .timeline-item strong {
+            display: block;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+    </style>
+</body>
+</html>
+
